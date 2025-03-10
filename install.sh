@@ -46,7 +46,7 @@ echo -e "${GREEN}Installation directory created: $PLASMOID_DIR${NC}"
 
 echo -e "${BLUE}Step 3: Copying widget files...${NC}"
 # Copy metadata.desktop
-cp metadata.desktop "$PLASMOID_DIR/" || { echo -e "${RED}Failed to copy metadata.desktop${NC}"; exit 1; }
+cp metadata.json "$PLASMOID_DIR/" || { echo -e "${RED}Failed to copy metadata.json${NC}"; exit 1; }
 
 # Copy contents directory
 if [ -d "contents" ]; then
