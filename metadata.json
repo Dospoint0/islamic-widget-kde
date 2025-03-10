@@ -14,8 +14,9 @@
         "License": "GPL-3.0",
         "Name": "Islamic Widget",
         "Version": "0.1",
-        "Website": "https://github.com/Dospoint0/Islamic-Widget-KDE"
+        "Website": "https://github.com/yourusername/islamic-widget"
     },
+    "X-Plasma-API-Minimum-Version": "6.0",
     "X-Plasma-API": "declarativeappletscript",
     "X-Plasma-MainScript": "ui/main.qml"
 }

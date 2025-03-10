@@ -1,10 +1,10 @@
-import QtQuick
-import QtQuick.Layouts
-import QtQuick.Controls
+// ui/main.qml
+import QtQuick 2.15
+import QtQuick.Layouts 1.15
+import QtQuick.Controls 2.15
+import org.kde.kirigami 2.20 as Kirigami
 import org.kde.plasma.core as PlasmaCore
-import org.kde.plasma.components as PlasmaComponents
-import org.kde.plasma.plasmoid
-import org.kde.kirigami as Kirigami
+import org.kde.plasma.plasmoid 2.0
 
 PlasmoidItem {
     id: root
@@ -31,13 +31,13 @@ PlasmoidItem {
     property int countdownSeconds: 0
     
     // Quran verse data
-    property string arabicText: i18n("Loading verse...")
-    property string translationText: i18n("Loading translation...")
-    property string verseReference: i18n("Surah --:--")
+    property string arabicText: i18nc("@info", "Loading verse...")
+    property string translationText: i18nc("@info", "Loading translation...")
+    property string verseReference: i18nc("@info", "Surah --:--")
     
     // Hadith data
-    property string hadithText: i18n("Loading hadith...")
-    property string hadithSource: i18n("Source: --")
+    property string hadithText: i18nc("@info", "Loading hadith...")
+    property string hadithSource: i18nc("@info", "Source: --")
     
     // Helper function to get local timezone
     function getLocalTimezone() {
@@ -124,11 +124,11 @@ PlasmoidItem {
                         // Determine next prayer
                         updateNextPrayer();
                     } else {
-                        nextPrayer = i18n("API Error");
+                        nextPrayer = i18nc("@info", "API Error");
                         countdownSeconds = 0;
                     }
                 } else {
-                    nextPrayer = i18n("Connection Error");
+                    nextPrayer = i18nc("@info", "Connection Error");
                     countdownSeconds = 0;
                 }
             }
@@ -213,7 +213,7 @@ PlasmoidItem {
                     var fajrTime = timeStringToDate(response.data.timings.Fajr);
                     fajrTime.setDate(fajrTime.getDate() + 1);
                     
-                    nextPrayer = "Fajr (Tomorrow)";
+                    nextPrayer = i18nc("@info", "Fajr (Tomorrow)");
                     nextPrayerTime = fajrTime;
                     updateCountdown();
                 }
@@ -260,7 +260,7 @@ PlasmoidItem {
                 if (response.code === 200) {
                     var verse = response.data;
                     arabicText = verse.text;
-                    verseReference = i18n("Surah %1 (%2)", verse.surah.englishName, verse.numberInSurah);
+                    verseReference = i18nc("@info", "Surah %1 (%2)", verse.surah.englishName, verse.numberInSurah);
                     
                     // Get translation
                     fetchTranslation(verse.number);
@@ -299,7 +299,7 @@ PlasmoidItem {
                 if (response.data) {
                     var hadith = response.data;
                     hadithText = hadith.hadith_english || "";
-                    hadithSource = i18n("Source: Sahih al-Bukhari %1", hadith.hadith_number || "");
+                    hadithSource = i18nc("@info", "Source: Sahih al-Bukhari %1", hadith.hadith_number || "");
                 }
             }
         };
@@ -313,233 +313,232 @@ PlasmoidItem {
         updateAllData();
     }
     
-    // Full representation (expanded widget)
-    preferredRepresentation: FullRepresentation {}
+    preferredRepresentation: fullRepresentation
     
-    FullRepresentation {
+    // Full representation
+    fullRepresentation: ColumnLayout {
         Layout.preferredWidth: Kirigami.Units.gridUnit * 24
         Layout.preferredHeight: Kirigami.Units.gridUnit * 36
+        Layout.minimumWidth: Kirigami.Units.gridUnit * 10
+        Layout.minimumHeight: Kirigami.Units.gridUnit * 15
         
-        ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: Kirigami.Units.smallSpacing
-            spacing: Kirigami.Units.largeSpacing
+        anchors.margins: Kirigami.Units.smallSpacing
+        spacing: Kirigami.Units.largeSpacing
+        
+        // Header
+        Label {
+            text: i18nc("@title", "Islamic Widget")
+            font.pixelSize: Kirigami.Units.gridUnit * 1.2
+            font.bold: true
+            Layout.alignment: Qt.AlignHCenter
+        }
+        
+        // Prayer times section
+        Item {
+            Layout.fillWidth: true
+            Layout.preferredHeight: prayerColumn.height
             
-            // Header
-            Label {
-                text: i18n("Islamic Widget")
-                font.pixelSize: Kirigami.Units.gridUnit * 1.2
-                font.bold: true
-                Layout.alignment: Qt.AlignHCenter
-            }
-            
-            // Prayer times section
-            Item {
-                Layout.fillWidth: true
-                Layout.preferredHeight: prayerColumn.height
+            ColumnLayout {
+                id: prayerColumn
+                width: parent.width
+                spacing: Kirigami.Units.smallSpacing
                 
-                ColumnLayout {
-                    id: prayerColumn
-                    width: parent.width
-                    spacing: Kirigami.Units.smallSpacing
+                Label {
+                    text: i18nc("@title", "Prayer Times")
+                    font.pixelSize: Kirigami.Units.gridUnit
+                    font.bold: true
+                }
+                
+                // Prayer times grid
+                GridLayout {
+                    columns: 2
+                    Layout.fillWidth: true
+                    columnSpacing: Kirigami.Units.largeSpacing
                     
+                    // Fajr
                     Label {
-                        text: i18n("Prayer Times")
-                        font.pixelSize: Kirigami.Units.gridUnit
+                        text: i18nc("@label:prayer", "Fajr:")
                         font.bold: true
                     }
-                    
-                    // Prayer times grid
-                    GridLayout {
-                        columns: 2
-                        Layout.fillWidth: true
-                        columnSpacing: Kirigami.Units.largeSpacing
-                        
-                        // Fajr
-                        Label {
-                            text: i18n("Fajr:")
-                            font.bold: true
-                        }
-                        Label {
-                            text: prayerTimes['Fajr'] ? Qt.formatTime(prayerTimes['Fajr'], "hh:mm") : "--:--"
-                            color: nextPrayer === "Fajr" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
-                            font.bold: nextPrayer === "Fajr"
-                        }
-                        
-                        // Sunrise
-                        Label {
-                            text: i18n("Sunrise:")
-                            font.bold: true
-                        }
-                        Label {
-                            text: prayerTimes['Sunrise'] ? Qt.formatTime(prayerTimes['Sunrise'], "hh:mm") : "--:--"
-                            color: nextPrayer === "Sunrise" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
-                            font.bold: nextPrayer === "Sunrise"
-                        }
-                        
-                        // Dhuhr
-                        Label {
-                            text: i18n("Dhuhr:")
-                            font.bold: true
-                        }
-                        Label {
-                            text: prayerTimes['Dhuhr'] ? Qt.formatTime(prayerTimes['Dhuhr'], "hh:mm") : "--:--"
-                            color: nextPrayer === "Dhuhr" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
-                            font.bold: nextPrayer === "Dhuhr"
-                        }
-                        
-                        // Asr
-                        Label {
-                            text: i18n("Asr:")
-                            font.bold: true
-                        }
-                        Label {
-                            text: prayerTimes['Asr'] ? Qt.formatTime(prayerTimes['Asr'], "hh:mm") : "--:--"
-                            color: nextPrayer === "Asr" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
-                            font.bold: nextPrayer === "Asr"
-                        }
-                        
-                        // Maghrib
-                        Label {
-                            text: i18n("Maghrib:")
-                            font.bold: true
-                        }
-                        Label {
-                            text: prayerTimes['Maghrib'] ? Qt.formatTime(prayerTimes['Maghrib'], "hh:mm") : "--:--"
-                            color: nextPrayer === "Maghrib" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
-                            font.bold: nextPrayer === "Maghrib"
-                        }
-                        
-                        // Isha
-                        Label {
-                            text: i18n("Isha:")
-                            font.bold: true
-                        }
-                        Label {
-                            text: prayerTimes['Isha'] ? Qt.formatTime(prayerTimes['Isha'], "hh:mm") : "--:--"
-                            color: nextPrayer === "Isha" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
-                            font.bold: nextPrayer === "Isha"
-                        }
-                        
-                        // Midnight
-                        Label {
-                            text: i18n("Midnight:")
-                            font.bold: true
-                        }
-                        Label {
-                            text: prayerTimes['Midnight'] ? Qt.formatTime(prayerTimes['Midnight'], "hh:mm") : "--:--"
-                            color: nextPrayer === "Midnight" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
-                            font.bold: nextPrayer === "Midnight"
-                        }
-                    }
-                    
-                    // Separator
-                    Rectangle {
-                        Layout.fillWidth: true
-                        height: 1
-                        color: Kirigami.Theme.disabledTextColor
-                        opacity: 0.3
-                    }
-                    
-                    // Next prayer and countdown
                     Label {
-                        text: i18n("Next: %1", nextPrayer)
-                        font.bold: true
-                        color: Kirigami.Theme.highlightColor
+                        text: prayerTimes['Fajr'] ? Qt.formatTime(prayerTimes['Fajr'], "hh:mm") : "--:--"
+                        color: nextPrayer === "Fajr" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
+                        font.bold: nextPrayer === "Fajr"
                     }
                     
+                    // Sunrise
                     Label {
-                        text: i18n("Time Remaining: %1", formatCountdown(countdownSeconds))
+                        text: i18nc("@label:prayer", "Sunrise:")
                         font.bold: true
+                    }
+                    Label {
+                        text: prayerTimes['Sunrise'] ? Qt.formatTime(prayerTimes['Sunrise'], "hh:mm") : "--:--"
+                        color: nextPrayer === "Sunrise" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
+                        font.bold: nextPrayer === "Sunrise"
+                    }
+                    
+                    // Dhuhr
+                    Label {
+                        text: i18nc("@label:prayer", "Dhuhr:")
+                        font.bold: true
+                    }
+                    Label {
+                        text: prayerTimes['Dhuhr'] ? Qt.formatTime(prayerTimes['Dhuhr'], "hh:mm") : "--:--"
+                        color: nextPrayer === "Dhuhr" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
+                        font.bold: nextPrayer === "Dhuhr"
+                    }
+                    
+                    // Asr
+                    Label {
+                        text: i18nc("@label:prayer", "Asr:")
+                        font.bold: true
+                    }
+                    Label {
+                        text: prayerTimes['Asr'] ? Qt.formatTime(prayerTimes['Asr'], "hh:mm") : "--:--"
+                        color: nextPrayer === "Asr" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
+                        font.bold: nextPrayer === "Asr"
+                    }
+                    
+                    // Maghrib
+                    Label {
+                        text: i18nc("@label:prayer", "Maghrib:")
+                        font.bold: true
+                    }
+                    Label {
+                        text: prayerTimes['Maghrib'] ? Qt.formatTime(prayerTimes['Maghrib'], "hh:mm") : "--:--"
+                        color: nextPrayer === "Maghrib" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
+                        font.bold: nextPrayer === "Maghrib"
+                    }
+                    
+                    // Isha
+                    Label {
+                        text: i18nc("@label:prayer", "Isha:")
+                        font.bold: true
+                    }
+                    Label {
+                        text: prayerTimes['Isha'] ? Qt.formatTime(prayerTimes['Isha'], "hh:mm") : "--:--"
+                        color: nextPrayer === "Isha" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
+                        font.bold: nextPrayer === "Isha"
+                    }
+                    
+                    // Midnight
+                    Label {
+                        text: i18nc("@label:prayer", "Midnight:")
+                        font.bold: true
+                    }
+                    Label {
+                        text: prayerTimes['Midnight'] ? Qt.formatTime(prayerTimes['Midnight'], "hh:mm") : "--:--"
+                        color: nextPrayer === "Midnight" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
+                        font.bold: nextPrayer === "Midnight"
                     }
                 }
-            }
-            
-            // Quran verse section
-            Item {
-                Layout.fillWidth: true
-                Layout.preferredHeight: quranColumn.height
-                visible: showArabic || showTranslation
                 
-                ColumnLayout {
-                    id: quranColumn
-                    width: parent.width
-                    spacing: Kirigami.Units.smallSpacing
-                    
-                    Label {
-                        text: i18n("Daily Verse")
-                        font.pixelSize: Kirigami.Units.gridUnit
-                        font.bold: true
-                    }
-                    
-                    // Arabic text
-                    Label {
-                        visible: showArabic
-                        text: arabicText
-                        horizontalAlignment: Text.AlignRight
-                        font.pixelSize: fontSize + 4
-                        font.bold: true
-                        Layout.fillWidth: true
-                        wrapMode: Text.WordWrap
-                    }
-                    
-                    // Translation
-                    Label {
-                        visible: showTranslation
-                        text: translationText
-                        Layout.fillWidth: true
-                        wrapMode: Text.WordWrap
-                    }
-                    
-                    // Reference
-                    Label {
-                        text: verseReference
-                        horizontalAlignment: Text.AlignRight
-                        Layout.fillWidth: true
-                        font.italic: true
-                    }
+                // Separator
+                Rectangle {
+                    Layout.fillWidth: true
+                    height: 1
+                    color: Kirigami.Theme.disabledTextColor
+                    opacity: 0.3
+                }
+                
+                // Next prayer and countdown
+                Label {
+                    text: i18nc("@info", "Next: %1", nextPrayer)
+                    font.bold: true
+                    color: Kirigami.Theme.highlightColor
+                }
+                
+                Label {
+                    text: i18nc("@info", "Time Remaining: %1", formatCountdown(countdownSeconds))
+                    font.bold: true
                 }
             }
+        }
+        
+        // Quran verse section
+        Item {
+            Layout.fillWidth: true
+            Layout.preferredHeight: quranColumn.height
+            visible: showArabic || showTranslation
             
-            // Hadith section
-            Item {
-                Layout.fillWidth: true
-                Layout.preferredHeight: hadithColumn.height
-                visible: showHadith
+            ColumnLayout {
+                id: quranColumn
+                width: parent.width
+                spacing: Kirigami.Units.smallSpacing
                 
-                ColumnLayout {
-                    id: hadithColumn
-                    width: parent.width
-                    spacing: Kirigami.Units.smallSpacing
-                    
-                    Label {
-                        text: i18n("Daily Hadith")
-                        font.pixelSize: Kirigami.Units.gridUnit
-                        font.bold: true
-                    }
-                    
-                    // Hadith text
-                    Label {
-                        text: hadithText
-                        Layout.fillWidth: true
-                        wrapMode: Text.WordWrap
-                    }
-                    
-                    // Source
-                    Label {
-                        text: hadithSource
-                        font.italic: true
-                    }
+                Label {
+                    text: i18nc("@title", "Daily Verse")
+                    font.pixelSize: Kirigami.Units.gridUnit
+                    font.bold: true
+                }
+                
+                // Arabic text
+                Label {
+                    visible: showArabic
+                    text: arabicText
+                    horizontalAlignment: Text.AlignRight
+                    font.pixelSize: fontSize + 4
+                    font.bold: true
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                }
+                
+                // Translation
+                Label {
+                    visible: showTranslation
+                    text: translationText
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                }
+                
+                // Reference
+                Label {
+                    text: verseReference
+                    horizontalAlignment: Text.AlignRight
+                    Layout.fillWidth: true
+                    font.italic: true
                 }
             }
+        }
+        
+        // Hadith section
+        Item {
+            Layout.fillWidth: true
+            Layout.preferredHeight: hadithColumn.height
+            visible: showHadith
             
-            // Refresh button
-            Button {
-                text: i18n("Refresh")
-                icon.name: "view-refresh"
-                Layout.alignment: Qt.AlignHCenter
-                onClicked: updateAllData()
+            ColumnLayout {
+                id: hadithColumn
+                width: parent.width
+                spacing: Kirigami.Units.smallSpacing
+                
+                Label {
+                    text: i18nc("@title", "Daily Hadith")
+                    font.pixelSize: Kirigami.Units.gridUnit
+                    font.bold: true
+                }
+                
+                // Hadith text
+                Label {
+                    text: hadithText
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                }
+                
+                // Source
+                Label {
+                    text: hadithSource
+                    font.italic: true
+                }
             }
+        }
+        
+        // Refresh button
+        Button {
+            text: i18nc("@action:button", "Refresh")
+            icon.name: "view-refresh"
+            Layout.alignment: Qt.AlignHCenter
+            onClicked: updateAllData()
         }
     }
 }
