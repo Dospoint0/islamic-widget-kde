@@ -1,0 +1,21 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "your.email@example.com",
+                "Name": "Your Name"
+            }
+        ],
+        "Category": "Utilities",
+        "Description": "Islamic daily information widget with prayer times, Quran and Hadith",
+        "EnabledByDefault": true,
+        "Icon": "preferences-desktop",
+        "Id": "org.kde.plasma.islamicwidget",
+        "License": "GPL-3.0",
+        "Name": "Islamic Widget",
+        "Version": "0.1",
+        "Website": "https://github.com/Dospoint0/Islamic-Widget-KDE"
+    },
+    "X-Plasma-API": "declarativeappletscript",
+    "X-Plasma-MainScript": "ui/main.qml"
+}

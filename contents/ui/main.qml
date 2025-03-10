@@ -1,25 +1,23 @@
-import QtQuick 2.15
-import QtQuick.Layouts 1.15
-import QtQuick.Controls 2.15
-import org.kde.plasma.core 2.0 as PlasmaCore
-import org.kde.plasma.components 3.0 as PlasmaComponents
-import org.kde.plasma.plasmoid 2.0
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+import org.kde.plasma.core as PlasmaCore
+import org.kde.plasma.components as PlasmaComponents
+import org.kde.plasma.plasmoid
+import org.kde.kirigami as Kirigami
 
-Item {
+PlasmoidItem {
     id: root
     
-    // Plasmoid configuration
-    Plasmoid.preferredRepresentation: Plasmoid.fullRepresentation
-    
     // Config properties from plasmoid configuration
-    property string cityName: Plasmoid.configuration.city || "New York"
-    property string countryName: Plasmoid.configuration.country || "United States"
-    property string timezone: Plasmoid.configuration.timezone || getLocalTimezone()
-    property int fontSize: Plasmoid.configuration.fontSize || 12
-    property bool showArabic: Plasmoid.configuration.showArabic === undefined ? true : Plasmoid.configuration.showArabic
-    property bool showTranslation: Plasmoid.configuration.showTranslation === undefined ? true : Plasmoid.configuration.showTranslation
-    property bool showHadith: Plasmoid.configuration.showHadith === undefined ? true : Plasmoid.configuration.showHadith
-    property string theme: Plasmoid.configuration.theme || "light"
+    property string cityName: plasmoid.configuration.city || "New York"
+    property string countryName: plasmoid.configuration.country || "United States"
+    property string timezone: plasmoid.configuration.timezone || getLocalTimezone()
+    property int fontSize: plasmoid.configuration.fontSize || 12
+    property bool showArabic: plasmoid.configuration.showArabic === undefined ? true : plasmoid.configuration.showArabic
+    property bool showTranslation: plasmoid.configuration.showTranslation === undefined ? true : plasmoid.configuration.showTranslation
+    property bool showHadith: plasmoid.configuration.showHadith === undefined ? true : plasmoid.configuration.showHadith
+    property string theme: plasmoid.configuration.theme || "light"
     
     // API URLs
     property string prayerApiUrl: "https://api.aladhan.com/v1/timingsByCity"
@@ -316,238 +314,231 @@ Item {
     }
     
     // Full representation (expanded widget)
-    Plasmoid.fullRepresentation: Item {
-        Layout.preferredWidth: units.gridUnit * 24
-        Layout.preferredHeight: units.gridUnit * 36
+    preferredRepresentation: FullRepresentation {}
+    
+    FullRepresentation {
+        Layout.preferredWidth: Kirigami.Units.gridUnit * 24
+        Layout.preferredHeight: Kirigami.Units.gridUnit * 36
         
-        // Apply theme
-        PlasmaCore.ColorScope {
-            id: colorScope
-            colorGroup: theme === "dark" ? PlasmaCore.Theme.ComplementaryColorGroup : PlasmaCore.Theme.NormalColorGroup
-            
+        ColumnLayout {
             anchors.fill: parent
+            anchors.margins: Kirigami.Units.smallSpacing
+            spacing: Kirigami.Units.largeSpacing
             
-            // Main layout
-            ColumnLayout {
-                anchors.fill: parent
-                anchors.margins: units.smallSpacing
-                spacing: units.largeSpacing
+            // Header
+            Label {
+                text: i18n("Islamic Widget")
+                font.pixelSize: Kirigami.Units.gridUnit * 1.2
+                font.bold: true
+                Layout.alignment: Qt.AlignHCenter
+            }
+            
+            // Prayer times section
+            Item {
+                Layout.fillWidth: true
+                Layout.preferredHeight: prayerColumn.height
                 
-                // Header
-                PlasmaComponents.Label {
-                    text: i18n("Islamic Widget")
-                    font.pixelSize: units.gridUnit * 1.2
-                    font.bold: true
-                    Layout.alignment: Qt.AlignHCenter
-                }
-                
-                // Prayer times section
-                Item {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: prayerColumn.height
+                ColumnLayout {
+                    id: prayerColumn
+                    width: parent.width
+                    spacing: Kirigami.Units.smallSpacing
                     
-                    ColumnLayout {
-                        id: prayerColumn
-                        width: parent.width
-                        spacing: units.smallSpacing
+                    Label {
+                        text: i18n("Prayer Times")
+                        font.pixelSize: Kirigami.Units.gridUnit
+                        font.bold: true
+                    }
+                    
+                    // Prayer times grid
+                    GridLayout {
+                        columns: 2
+                        Layout.fillWidth: true
+                        columnSpacing: Kirigami.Units.largeSpacing
                         
-                        PlasmaComponents.Label {
-                            text: i18n("Prayer Times")
-                            font.pixelSize: units.gridUnit
+                        // Fajr
+                        Label {
+                            text: i18n("Fajr:")
                             font.bold: true
                         }
-                        
-                        // Prayer times grid
-                        GridLayout {
-                            columns: 2
-                            Layout.fillWidth: true
-                            columnSpacing: units.largeSpacing
-                            
-                            // Fajr
-                            PlasmaComponents.Label {
-                                text: i18n("Fajr:")
-                                font.bold: true
-                            }
-                            PlasmaComponents.Label {
-                                text: prayerTimes['Fajr'] ? Qt.formatTime(prayerTimes['Fajr'], "hh:mm") : "--:--"
-                                color: nextPrayer === "Fajr" ? PlasmaCore.Theme.highlightColor : PlasmaCore.Theme.textColor
-                                font.bold: nextPrayer === "Fajr"
-                            }
-                            
-                            // Sunrise
-                            PlasmaComponents.Label {
-                                text: i18n("Sunrise:")
-                                font.bold: true
-                            }
-                            PlasmaComponents.Label {
-                                text: prayerTimes['Sunrise'] ? Qt.formatTime(prayerTimes['Sunrise'], "hh:mm") : "--:--"
-                                color: nextPrayer === "Sunrise" ? PlasmaCore.Theme.highlightColor : PlasmaCore.Theme.textColor
-                                font.bold: nextPrayer === "Sunrise"
-                            }
-                            
-                            // Dhuhr
-                            PlasmaComponents.Label {
-                                text: i18n("Dhuhr:")
-                                font.bold: true
-                            }
-                            PlasmaComponents.Label {
-                                text: prayerTimes['Dhuhr'] ? Qt.formatTime(prayerTimes['Dhuhr'], "hh:mm") : "--:--"
-                                color: nextPrayer === "Dhuhr" ? PlasmaCore.Theme.highlightColor : PlasmaCore.Theme.textColor
-                                font.bold: nextPrayer === "Dhuhr"
-                            }
-                            
-                            // Asr
-                            PlasmaComponents.Label {
-                                text: i18n("Asr:")
-                                font.bold: true
-                            }
-                            PlasmaComponents.Label {
-                                text: prayerTimes['Asr'] ? Qt.formatTime(prayerTimes['Asr'], "hh:mm") : "--:--"
-                                color: nextPrayer === "Asr" ? PlasmaCore.Theme.highlightColor : PlasmaCore.Theme.textColor
-                                font.bold: nextPrayer === "Asr"
-                            }
-                            
-                            // Maghrib
-                            PlasmaComponents.Label {
-                                text: i18n("Maghrib:")
-                                font.bold: true
-                            }
-                            PlasmaComponents.Label {
-                                text: prayerTimes['Maghrib'] ? Qt.formatTime(prayerTimes['Maghrib'], "hh:mm") : "--:--"
-                                color: nextPrayer === "Maghrib" ? PlasmaCore.Theme.highlightColor : PlasmaCore.Theme.textColor
-                                font.bold: nextPrayer === "Maghrib"
-                            }
-                            
-                            // Isha
-                            PlasmaComponents.Label {
-                                text: i18n("Isha:")
-                                font.bold: true
-                            }
-                            PlasmaComponents.Label {
-                                text: prayerTimes['Isha'] ? Qt.formatTime(prayerTimes['Isha'], "hh:mm") : "--:--"
-                                color: nextPrayer === "Isha" ? PlasmaCore.Theme.highlightColor : PlasmaCore.Theme.textColor
-                                font.bold: nextPrayer === "Isha"
-                            }
-                            
-                            // Midnight
-                            PlasmaComponents.Label {
-                                text: i18n("Midnight:")
-                                font.bold: true
-                            }
-                            PlasmaComponents.Label {
-                                text: prayerTimes['Midnight'] ? Qt.formatTime(prayerTimes['Midnight'], "hh:mm") : "--:--"
-                                color: nextPrayer === "Midnight" ? PlasmaCore.Theme.highlightColor : PlasmaCore.Theme.textColor
-                                font.bold: nextPrayer === "Midnight"
-                            }
+                        Label {
+                            text: prayerTimes['Fajr'] ? Qt.formatTime(prayerTimes['Fajr'], "hh:mm") : "--:--"
+                            color: nextPrayer === "Fajr" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
+                            font.bold: nextPrayer === "Fajr"
                         }
                         
-                        // Separator
-                        Rectangle {
-                            Layout.fillWidth: true
-                            height: 1
-                            color: PlasmaCore.Theme.disabledTextColor
-                            opacity: 0.3
-                        }
-                        
-                        // Next prayer and countdown
-                        PlasmaComponents.Label {
-                            text: i18n("Next: %1", nextPrayer)
+                        // Sunrise
+                        Label {
+                            text: i18n("Sunrise:")
                             font.bold: true
-                            color: PlasmaCore.Theme.highlightColor
+                        }
+                        Label {
+                            text: prayerTimes['Sunrise'] ? Qt.formatTime(prayerTimes['Sunrise'], "hh:mm") : "--:--"
+                            color: nextPrayer === "Sunrise" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
+                            font.bold: nextPrayer === "Sunrise"
                         }
                         
-                        PlasmaComponents.Label {
-                            text: i18n("Time Remaining: %1", formatCountdown(countdownSeconds))
+                        // Dhuhr
+                        Label {
+                            text: i18n("Dhuhr:")
                             font.bold: true
+                        }
+                        Label {
+                            text: prayerTimes['Dhuhr'] ? Qt.formatTime(prayerTimes['Dhuhr'], "hh:mm") : "--:--"
+                            color: nextPrayer === "Dhuhr" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
+                            font.bold: nextPrayer === "Dhuhr"
+                        }
+                        
+                        // Asr
+                        Label {
+                            text: i18n("Asr:")
+                            font.bold: true
+                        }
+                        Label {
+                            text: prayerTimes['Asr'] ? Qt.formatTime(prayerTimes['Asr'], "hh:mm") : "--:--"
+                            color: nextPrayer === "Asr" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
+                            font.bold: nextPrayer === "Asr"
+                        }
+                        
+                        // Maghrib
+                        Label {
+                            text: i18n("Maghrib:")
+                            font.bold: true
+                        }
+                        Label {
+                            text: prayerTimes['Maghrib'] ? Qt.formatTime(prayerTimes['Maghrib'], "hh:mm") : "--:--"
+                            color: nextPrayer === "Maghrib" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
+                            font.bold: nextPrayer === "Maghrib"
+                        }
+                        
+                        // Isha
+                        Label {
+                            text: i18n("Isha:")
+                            font.bold: true
+                        }
+                        Label {
+                            text: prayerTimes['Isha'] ? Qt.formatTime(prayerTimes['Isha'], "hh:mm") : "--:--"
+                            color: nextPrayer === "Isha" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
+                            font.bold: nextPrayer === "Isha"
+                        }
+                        
+                        // Midnight
+                        Label {
+                            text: i18n("Midnight:")
+                            font.bold: true
+                        }
+                        Label {
+                            text: prayerTimes['Midnight'] ? Qt.formatTime(prayerTimes['Midnight'], "hh:mm") : "--:--"
+                            color: nextPrayer === "Midnight" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
+                            font.bold: nextPrayer === "Midnight"
                         }
                     }
-                }
-                
-                // Quran verse section
-                Item {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: quranColumn.height
-                    visible: showArabic || showTranslation
                     
-                    ColumnLayout {
-                        id: quranColumn
-                        width: parent.width
-                        spacing: units.smallSpacing
-                        
-                        PlasmaComponents.Label {
-                            text: i18n("Daily Verse")
-                            font.pixelSize: units.gridUnit
-                            font.bold: true
-                        }
-                        
-                        // Arabic text
-                        PlasmaComponents.Label {
-                            visible: showArabic
-                            text: arabicText
-                            horizontalAlignment: Text.AlignRight
-                            font.pixelSize: fontSize + 4
-                            font.bold: true
-                            Layout.fillWidth: true
-                            wrapMode: Text.WordWrap
-                        }
-                        
-                        // Translation
-                        PlasmaComponents.Label {
-                            visible: showTranslation
-                            text: translationText
-                            Layout.fillWidth: true
-                            wrapMode: Text.WordWrap
-                        }
-                        
-                        // Reference
-                        PlasmaComponents.Label {
-                            text: verseReference
-                            horizontalAlignment: Text.AlignRight
-                            Layout.fillWidth: true
-                            font.italic: true
-                        }
+                    // Separator
+                    Rectangle {
+                        Layout.fillWidth: true
+                        height: 1
+                        color: Kirigami.Theme.disabledTextColor
+                        opacity: 0.3
+                    }
+                    
+                    // Next prayer and countdown
+                    Label {
+                        text: i18n("Next: %1", nextPrayer)
+                        font.bold: true
+                        color: Kirigami.Theme.highlightColor
+                    }
+                    
+                    Label {
+                        text: i18n("Time Remaining: %1", formatCountdown(countdownSeconds))
+                        font.bold: true
                     }
                 }
+            }
+            
+            // Quran verse section
+            Item {
+                Layout.fillWidth: true
+                Layout.preferredHeight: quranColumn.height
+                visible: showArabic || showTranslation
                 
-                // Hadith section
-                Item {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: hadithColumn.height
-                    visible: showHadith
+                ColumnLayout {
+                    id: quranColumn
+                    width: parent.width
+                    spacing: Kirigami.Units.smallSpacing
                     
-                    ColumnLayout {
-                        id: hadithColumn
-                        width: parent.width
-                        spacing: units.smallSpacing
-                        
-                        PlasmaComponents.Label {
-                            text: i18n("Daily Hadith")
-                            font.pixelSize: units.gridUnit
-                            font.bold: true
-                        }
-                        
-                        // Hadith text
-                        PlasmaComponents.Label {
-                            text: hadithText
-                            Layout.fillWidth: true
-                            wrapMode: Text.WordWrap
-                        }
-                        
-                        // Source
-                        PlasmaComponents.Label {
-                            text: hadithSource
-                            font.italic: true
-                        }
+                    Label {
+                        text: i18n("Daily Verse")
+                        font.pixelSize: Kirigami.Units.gridUnit
+                        font.bold: true
+                    }
+                    
+                    // Arabic text
+                    Label {
+                        visible: showArabic
+                        text: arabicText
+                        horizontalAlignment: Text.AlignRight
+                        font.pixelSize: fontSize + 4
+                        font.bold: true
+                        Layout.fillWidth: true
+                        wrapMode: Text.WordWrap
+                    }
+                    
+                    // Translation
+                    Label {
+                        visible: showTranslation
+                        text: translationText
+                        Layout.fillWidth: true
+                        wrapMode: Text.WordWrap
+                    }
+                    
+                    // Reference
+                    Label {
+                        text: verseReference
+                        horizontalAlignment: Text.AlignRight
+                        Layout.fillWidth: true
+                        font.italic: true
                     }
                 }
+            }
+            
+            // Hadith section
+            Item {
+                Layout.fillWidth: true
+                Layout.preferredHeight: hadithColumn.height
+                visible: showHadith
                 
-                // Refresh button
-                PlasmaComponents.Button {
-                    text: i18n("Refresh")
-                    icon.name: "view-refresh"
-                    Layout.alignment: Qt.AlignHCenter
-                    onClicked: updateAllData()
+                ColumnLayout {
+                    id: hadithColumn
+                    width: parent.width
+                    spacing: Kirigami.Units.smallSpacing
+                    
+                    Label {
+                        text: i18n("Daily Hadith")
+                        font.pixelSize: Kirigami.Units.gridUnit
+                        font.bold: true
+                    }
+                    
+                    // Hadith text
+                    Label {
+                        text: hadithText
+                        Layout.fillWidth: true
+                        wrapMode: Text.WordWrap
+                    }
+                    
+                    // Source
+                    Label {
+                        text: hadithSource
+                        font.italic: true
+                    }
                 }
+            }
+            
+            // Refresh button
+            Button {
+                text: i18n("Refresh")
+                icon.name: "view-refresh"
+                Layout.alignment: Qt.AlignHCenter
+                onClicked: updateAllData()
             }
         }
     }
