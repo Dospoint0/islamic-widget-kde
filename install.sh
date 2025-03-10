@@ -87,4 +87,12 @@ echo -e "${GREEN}Widget files copied successfully!${NC}"
 
 # Clean up
 cd "$HOME"
-rm -rf "$
+rm -rf "$TEMP_DIR"
+
+echo -e "${BLUE}Step 4: Installation complete!${NC}"
+echo -e "${GREEN}The Islamic Widget has been successfully installed.${NC}"
+echo -e "${YELLOW}You may need to restart your Plasma session to see the widget.${NC}"
+echo -e "${BLUE}To add the widget, right-click on your desktop or panel,"
+echo -e "select 'Add Widgets' and search for 'Islamic Widget'${NC}"
+
+exit 0
