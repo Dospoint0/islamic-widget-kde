@@ -326,12 +326,14 @@ PlasmoidItem {
         spacing: Kirigami.Units.largeSpacing
         
         // Header
+        /*
         Label {
             text: i18nc("@title", "Islamic Widget")
             font.pixelSize: Kirigami.Units.gridUnit * 1.2
             font.bold: true
             Layout.alignment: Qt.AlignHCenter
         }
+        */
         
         // Prayer times section
         Item {
@@ -342,6 +344,7 @@ PlasmoidItem {
                 id: prayerColumn
                 width: parent.width
                 spacing: Kirigami.Units.smallSpacing
+                visible: showPrayerTimes
                 
                 Label {
                     text: i18nc("@title", "Prayer Times")

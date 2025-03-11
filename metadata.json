@@ -13,7 +13,7 @@
         "Id": "org.kde.plasma.islamicwidget",
         "License": "GPL-3.0",
         "Name": "Islamic Widget",
-        "Version": "0.1",
+        "Version": "0.11",
         "Website": "https://github.com/Dospoint0/Islamic-Widget-KDE"
     },
     "X-Plasma-API-Minimum-Version": "6.0",

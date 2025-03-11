@@ -68,4 +68,10 @@ Kirigami.FormLayout {
         Kirigami.FormData.label: i18nc("@option:check", "Show Hadith:")
         checked: true
     }
+
+    CheckBox {
+        id: showPrayerTimesCheckbox
+        Kirigami.FormData.label: i18nc("@option:check", "Show Prayer Times:")
+        checked: true
+    }
 }
