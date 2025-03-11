@@ -83,6 +83,11 @@ fi
 cp contents/ui/main.qml "$PLASMOID_DIR/contents/ui/" || { echo -e "${RED}Failed to copy main.qml${NC}"; exit 1; }
 cp contents/ui/configGeneral.qml "$PLASMOID_DIR/contents/ui/" || { echo -e "${RED}Failed to copy configGeneral.qml${NC}"; exit 1; }
 
+# Copy config files
+mkdir -p "$PLASMOID_DIR/contents/config" || { echo -e "${RED}Failed to create config directory${NC}"; exit 1; }
+cp contents/config/config.qml "$PLASMOID_DIR/contents/config/" || { echo -e "${RED}Failed to copy config.qml${NC}"; exit 1; }
+cp contents/config/main.xml "$PLASMOID_DIR/contents/config/" || { echo -e "${RED}Failed to copy main.xml${NC}"; exit 1; }
+
 echo -e "${GREEN}Widget files copied successfully!${NC}"
 
 # Clean up
@@ -91,7 +96,27 @@ rm -rf "$TEMP_DIR"
 
 echo -e "${BLUE}Step 4: Installation complete!${NC}"
 echo -e "${GREEN}The Islamic Widget has been successfully installed.${NC}"
-echo -e "${YELLOW}You may need to restart your Plasma session to see the widget.${NC}"
+
+# Ask user if they want to restart Plasma
+echo -e "${YELLOW}Would you like to restart Plasma now to activate the widget? (y/n)${NC}"
+read -r restart_choice
+
+if [[ "$restart_choice" =~ ^[Yy]$ ]]; then
+    echo -e "${BLUE}Restarting Plasma...${NC}"
+    if [ "$PLASMA_VERSION" -ge "6" ]; then
+        # Plasma 6 restart
+        kquitapp6 plasmashell || killall plasmashell
+        kstart6 plasmashell
+    else
+        # Plasma 5 restart
+        kquitapp5 plasmashell || killall plasmashell
+        kstart5 plasmashell
+    fi
+    echo -e "${GREEN}Plasma has been restarted.${NC}"
+else
+    echo -e "${YELLOW}You may need to restart your Plasma session later to see the widget.${NC}"
+fi
+
 echo -e "${BLUE}To add the widget, right-click on your desktop or panel,"
 echo -e "select 'Add Widgets' and search for 'Islamic Widget'${NC}"
 
