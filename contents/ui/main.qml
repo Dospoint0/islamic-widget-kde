@@ -339,12 +339,13 @@ PlasmoidItem {
         Item {
             Layout.fillWidth: true
             Layout.preferredHeight: prayerColumn.height
+            visible: showPrayerTimes
             
             ColumnLayout {
                 id: prayerColumn
                 width: parent.width
                 spacing: Kirigami.Units.smallSpacing
-                visible: showPrayerTimes
+                
                 
                 Label {
                     text: i18nc("@title", "Prayer Times")

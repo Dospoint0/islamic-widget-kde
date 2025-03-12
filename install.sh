@@ -106,7 +106,7 @@ if [[ "$restart_choice" =~ ^[Yy]$ ]]; then
     if [ "$PLASMA_VERSION" -ge "6" ]; then
         # Plasma 6 restart
         kquitapp6 plasmashell || killall plasmashell
-        kstart6 plasmashell
+        kstart plasmashell
     else
         # Plasma 5 restart
         kquitapp5 plasmashell || killall plasmashell
