@@ -17,6 +17,7 @@ PlasmoidItem {
     property bool showArabic: plasmoid.configuration.showArabic === undefined ? true : plasmoid.configuration.showArabic
     property bool showTranslation: plasmoid.configuration.showTranslation === undefined ? true : plasmoid.configuration.showTranslation
     property bool showHadith: plasmoid.configuration.showHadith === undefined ? true : plasmoid.configuration.showHadith
+    property bool showPrayerTimes: plasmoid.configuration.showPrayerTimes === undefined ? true : plasmoid.configuration.showPrayerTimes
     property string theme: plasmoid.configuration.theme || "light"
     
     // API URLs
