@@ -92,9 +92,20 @@ Kirigami.FormLayout {
     function loadTimezones() {
         // Implement your timezone loading logic here
         timezoneModel.clear();
-        timezoneModel.append({text: "UTC-08:00 (Pacific Time)", value: "America/Los_Angeles", identifier: "America/Los_Angeles", utcZones: ["America/Los_Angeles"]});
-        timezoneModel.append({text: "UTC-05:00 (Eastern Time)", value: "America/New_York", identifier: "America/New_York", utcZones: ["America/New_York"]});
-        // Add more timezones as needed
+
+        fetch(timezonesJsonPath)
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(item => {
+                    timezoneModel.append({
+                        text: item.text,
+                        value: item.value,
+                        identifier: item.identifier,
+                        utcZones: item.utcZones
+                    });
+                });
+            })
+            .catch(error => console.error('Error loading timezones:', error));
     }
 
     // Get the local timezone
