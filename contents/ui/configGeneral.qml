@@ -90,14 +90,26 @@ Kirigami.FormLayout {
     
     // Function to load timezones
     function loadTimezones() {
+        console.log("Starting loadTimezones function");
+        console.log("Attempting to load timezones from:", timezonesJsonPath);
+        
         var xhr = new XMLHttpRequest();
         xhr.open("GET", timezonesJsonPath, true);
+        
         xhr.onreadystatechange = function() {
+            console.log("XHR state changed:", xhr.readyState);
+            
             if (xhr.readyState === XMLHttpRequest.DONE) {
+                console.log("XHR request complete with status:", xhr.status);
+                
                 if (xhr.status === 200) {
                     try {
+                        console.log("Response received, first 100 chars:", xhr.responseText.substring(0, 100));
                         var data = JSON.parse(xhr.responseText);
+                        console.log("JSON parsed successfully, found", data.length, "timezones");
+                        
                         timezoneModel.clear();
+                        console.log("Timezone model cleared");
                         
                         for (var i = 0; i < data.length; i++) {
                             var timezone = data[i];
@@ -107,44 +119,34 @@ Kirigami.FormLayout {
                                 identifier: timezone.utc && timezone.utc.length > 0 ? timezone.utc[0] : timezone.value,
                                 utcZones: timezone.utc || []
                             });
+                            
+                            // Log every 10th timezone to avoid flooding console
+                            if (i % 10 === 0 || i < 5) {
+                                console.log("Added timezone:", timezone.text, "with identifier:", timezone.utc && timezone.utc.length > 0 ? timezone.utc[0] : timezone.value);
+                            }
                         }
                         
+                        console.log("Total timezones loaded into model:", timezoneModel.count);
+                        
                         // After loading timezones, set the initial timezone
+                        console.log("Calling setInitialTimezone");
                         Qt.callLater(setInitialTimezone);
                     } catch (e) {
                         console.error("Error parsing timezone JSON:", e);
+                        console.log("First 100 chars of response that failed to parse:", xhr.responseText.substring(0, 100));
                     }
                 } else {
-                    console.error("Failed to load timezones.json:", xhr.status);
+                    console.error("Failed to load timezones.json. Status:", xhr.status, "Status text:", xhr.statusText);
                 }
             }
         };
+        
+        xhr.onerror = function() {
+            console.error("Network error occurred when trying to fetch timezones.json");
+        };
+        
+        console.log("Sending XHR request");
         xhr.send();
-        timezoneModel.append({text: "UTC-08:00 (Pacific Time)", value: "America/Los_Angeles", identifier: "America/Los_Angeles", utcZones: ["America/Los_Angeles"]});
-        timezoneModel.append({text: "UTC-05:00 (Eastern Time)", value: "America/New_York", identifier: "America/New_York", utcZones: ["America/New_York"]});
-    }
-    // Get the local timezone
-    function getLocalTimezone() {
-        // This returns the local timezone in IANA format (e.g., "America/New_York")
-        var now = new Date();
-        // Get timezone offset in minutes
-        var timezoneOffset = -now.getTimezoneOffset();
-        // Convert to hours
-        var offsetHours = Math.floor(Math.abs(timezoneOffset) / 60);
-        // Format offset string
-        var offsetString = (timezoneOffset >= 0 ? "+" : "-") + 
-                        String(offsetHours).padStart(2, "0") + ":00";
-        
-        // Find matching timezone in our model
-        for (var i = 0; i < timezoneModel.count; i++) {
-            var item = timezoneModel.get(i);
-            if (item.text.indexOf(offsetString) !== -1) {
-                return item.identifier;
-            }
-        }
-        
-        // Fallback to system locale information if available
-        return Qt.locale().timeZoneId || "UTC";
     }
 
     function setInitialTimezone() {
