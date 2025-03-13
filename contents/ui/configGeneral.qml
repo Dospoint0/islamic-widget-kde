@@ -7,34 +7,41 @@ import org.kde.kirigami 2.20 as Kirigami
 Kirigami.FormLayout {
     id: root
     
-    //property alias cfg_city: cityField.text
-    //property alias cfg_country: countryField.text
-    //property alias cfg_timezone: timezoneField.text
+    property alias cfg_city: cityCombo.currentValue
+    property alias cfg_country: countryCombo.currentValue
+    property alias cfg_timezone: timezoneCombo.currentValue
     property alias cfg_fontSize: fontSizeSpinBox.value
     property alias cfg_showArabic: showArabicCheckbox.checked
     property alias cfg_showTranslation: showTranslationCheckbox.checked
     property alias cfg_showHadith: showHadithCheckbox.checked
     property alias cfg_showPrayerTimes: showPrayerTimesCheckbox.checked
     property alias cfg_theme: themeCombo.currentText
-    property string cfg_city
-    property string cfg_country
-    property string cfg_timezone
-
+    
     property var countries: []
     property var cities: []
     property var timezones: []
     
     //path to timezone json file
     readonly property string timezonesJsonPath: Qt.resolvedUrl("../timezones.json")
-    // Location settings
+    
+    ListModel {
+        id: countryModel
+    }
+    
+    ListModel {
+        id: cityModel
+    }
+    
+    ListModel {
+        id: timezoneModel
+    }
 
     Component.onCompleted: {
         loadCountries();
-        
         loadTimezones();
 
         //set initial values
-        for(var i = 0; i<countryModel.count; i++) {
+        for(var i = 0; i < countryModel.count; i++) {
             if (countryModel.get(i).value === cfg_country) {
                 countryCombo.currentIndex = i;
                 break;
@@ -44,7 +51,7 @@ Kirigami.FormLayout {
         loadCities(cfg_country);
 
         Qt.callLater(function() {
-            for(var i = 0; i<cityModel.count; i++) {
+            for(var i = 0; i < cityModel.count; i++) {
                 if (cityModel.get(i).value === cfg_city) {
                     cityCombo.currentIndex = i;
                     break;
@@ -53,7 +60,41 @@ Kirigami.FormLayout {
         });
 
         setInitialTimezone();
+    }
 
+    // Function to load countries
+    function loadCountries() {
+        // Implement your country loading logic here
+        // For example:
+        countryModel.clear();
+        countryModel.append({text: "United States", value: "US"});
+        countryModel.append({text: "Canada", value: "CA"});
+        // Add more countries as needed
+    }
+    
+    // Function to load cities based on country
+    function loadCities(country) {
+        // Implement your city loading logic here
+        cityModel.clear();
+        if (country === "US") {
+            cityModel.append({text: "New York", value: "New York"});
+            cityModel.append({text: "Los Angeles", value: "Los Angeles"});
+            // Add more US cities
+        } else if (country === "CA") {
+            cityModel.append({text: "Toronto", value: "Toronto"});
+            cityModel.append({text: "Vancouver", value: "Vancouver"});
+            // Add more Canadian cities
+        }
+        // Add more country conditions as needed
+    }
+    
+    // Function to load timezones
+    function loadTimezones() {
+        // Implement your timezone loading logic here
+        timezoneModel.clear();
+        timezoneModel.append({text: "UTC-08:00 (Pacific Time)", value: "America/Los_Angeles", identifier: "America/Los_Angeles", utcZones: ["America/Los_Angeles"]});
+        timezoneModel.append({text: "UTC-05:00 (Eastern Time)", value: "America/New_York", identifier: "America/New_York", utcZones: ["America/New_York"]});
+        // Add more timezones as needed
     }
 
     // Get the local timezone
@@ -80,34 +121,44 @@ Kirigami.FormLayout {
         return Qt.locale().timeZoneId || "UTC";
     }
 
-    function setInitialTimezone(){
-        cfg_timezone = getLocalTimezone();
-        i = timezoneCombo.find(cfg_timezone);
-        timezoneCombo.currentIndex = cfg_timezone;
+    function setInitialTimezone() {
+        if (!cfg_timezone || cfg_timezone === "") {
+            cfg_timezone = getLocalTimezone();
+        }
+        
+        // Find the index of the timezone in the model
+        for (var i = 0; i < timezoneModel.count; i++) {
+            if (timezoneModel.get(i).identifier === cfg_timezone || 
+                timezoneModel.get(i).value === cfg_timezone) {
+                timezoneCombo.currentIndex = i;
+                break;
+            }
+        }
     }
 
-    
-    // Set the default timezone if none is configured
-    if (!cfg_timezone || cfg_timezone === "") {
-        cfg_timezone = getLocalTimezone();
-    }
-
-    TextBox {
-        id: countryText
-        Kirigami.FormData.label: i18nc("@label:textbox", "Country:")
+    ComboBox {
+        id: countryCombo
+        Kirigami.FormData.label: i18nc("@label:listbox", "Country:")
         model: countryModel
         textRole: "text"
-        /*currentIndex: -1
+        valueRole: "value"
         onCurrentIndexChanged: {
             if (currentIndex >= 0) {
-                var selectedCountry = countryModel.get(currentIndex).value;
-                cfg_country = selectedCountry;
+                var selectedCountry = model.get(currentIndex).value;
                 loadCities(selectedCountry);
                 
                 // Reset city selection
                 cityCombo.currentIndex = 0;
             }
-        }*/
+        }
+    }
+
+    ComboBox {
+        id: cityCombo
+        Kirigami.FormData.label: i18nc("@label:listbox", "City:")
+        model: cityModel
+        textRole: "text"
+        valueRole: "value"
     }
 
     ComboBox {
@@ -115,10 +166,10 @@ Kirigami.FormLayout {
         Kirigami.FormData.label: i18nc("@label:listbox", "Timezone:")
         model: timezoneModel
         textRole: "text"
-        currentIndex: -1
+        valueRole: "value"
         onCurrentIndexChanged: {
             if (currentIndex >= 0) {
-                var tzItem = timezoneModel.get(currentIndex);
+                var tzItem = model.get(currentIndex);
                 
                 // Use the first UTC timezone as the value to save if available
                 if (tzItem.utcZones && tzItem.utcZones.length > 0) {
@@ -130,21 +181,6 @@ Kirigami.FormLayout {
                 }
             }
         }
-    }
-    // Load cities based on the selected country
-    
-    TextBox {
-        id: cityText
-        Kirigami.FormData.label: i18nc("@label:textbox", "City:")
-        model: cityModel
-        textRole: "text"
-        /*
-        currentIndex: -1
-        onCurrentIndexChanged: {
-            if (currentIndex >= 0 && cityModel.count > 0) {
-                cfg_city = cityModel.get(currentIndex).value;
-            }
-        }*/
     }
 
     // Appearance settings
@@ -187,4 +223,3 @@ Kirigami.FormLayout {
         checked: true
     }
 }
-
