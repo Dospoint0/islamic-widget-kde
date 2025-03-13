@@ -90,24 +90,37 @@ Kirigami.FormLayout {
     
     // Function to load timezones
     function loadTimezones() {
-        // Implement your timezone loading logic here
-        timezoneModel.clear();
-
-        fetch(timezonesJsonPath)
-            .then(response => response.json())
-            .then(data => {
-                data.forEach(item => {
-                    timezoneModel.append({
-                        text: item.text,
-                        value: item.value,
-                        identifier: item.identifier,
-                        utcZones: item.utcZones
-                    });
-                });
-            })
-            .catch(error => console.error('Error loading timezones:', error));
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", timezonesJsonPath, true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        timezoneModel.clear();
+                        
+                        for (var i = 0; i < data.length; i++) {
+                            var timezone = data[i];
+                            timezoneModel.append({
+                                text: timezone.text,
+                                value: timezone.value,
+                                identifier: timezone.utc && timezone.utc.length > 0 ? timezone.utc[0] : timezone.value,
+                                utcZones: timezone.utc || []
+                            });
+                        }
+                        
+                        // After loading timezones, set the initial timezone
+                        Qt.callLater(setInitialTimezone);
+                    } catch (e) {
+                        console.error("Error parsing timezone JSON:", e);
+                    }
+                } else {
+                    console.error("Failed to load timezones.json:", xhr.status);
+                }
+            }
+        };
+        xhr.send();
     }
-
     // Get the local timezone
     function getLocalTimezone() {
         // This returns the local timezone in IANA format (e.g., "America/New_York")
