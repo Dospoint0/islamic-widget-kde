@@ -1,11 +1,40 @@
-// ui/configGeneral.qml
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.15
 import org.kde.kirigami 2.20 as Kirigami
 
-Kirigami.FormLayout {
-    id: root
+ColumnLayout {
+    id: rootLayout
+    
+    // Debug section (only visible when debugMode is true)
+    property bool debugMode: true
+    
+    Rectangle {
+        Layout.fillWidth: true
+        height: debugText.contentHeight + 20
+        color: "#f0f0f0"
+        border.color: "#cccccc"
+        visible: debugMode
+        
+        TextArea {
+            id: debugText
+            anchors.fill: parent
+            anchors.margins: 10
+            readOnly: true
+            wrapMode: TextEdit.WordWrap
+            text: "Debug Log:"
+            
+            function log(message) {
+                text = text + "\n" + message;
+                console.log(message);
+            }
+        }
+    }
+    
+    // The original form layout
+    Kirigami.FormLayout {
+        id: root
+        Layout.fillWidth: true
     
     property alias cfg_city: cityCombo.currentValue
     property alias cfg_country: countryCombo.currentValue
@@ -37,29 +66,57 @@ Kirigami.FormLayout {
     }
 
     Component.onCompleted: {
+        debugText.log("Component.onCompleted called");
+        debugText.log("timezonesJsonPath: " + timezonesJsonPath);
+        
+        // Log initial configuration values
+        debugText.log("Initial cfg_country: " + cfg_country);
+        debugText.log("Initial cfg_city: " + cfg_city);
+        debugText.log("Initial cfg_timezone: " + cfg_timezone);
+        
         loadCountries();
+        debugText.log("Countries loaded, count: " + countryModel.count);
+        
         loadTimezones();
+        debugText.log("Started timezone loading (async)");
 
-        //set initial values
-        for(var i = 0; i < countryModel.count; i++) {
-            if (countryModel.get(i).value === cfg_country) {
-                countryCombo.currentIndex = i;
-                break;
+        //set initial values for country
+        if (cfg_country && cfg_country !== "") {
+            debugText.log("Setting initial country: " + cfg_country);
+            for(var i = 0; i < countryModel.count; i++) {
+                if (countryModel.get(i).value === cfg_country) {
+                    debugText.log("Found matching country at index " + i);
+                    countryCombo.currentIndex = i;
+                    break;
+                }
+            }
+        } else {
+            debugText.log("No country set, using first available");
+            if (countryModel.count > 0) {
+                countryCombo.currentIndex = 0;
             }
         }
 
         loadCities(cfg_country);
+        debugText.log("Cities loaded for " + cfg_country + " count: " + cityModel.count);
 
         Qt.callLater(function() {
-            for(var i = 0; i < cityModel.count; i++) {
-                if (cityModel.get(i).value === cfg_city) {
-                    cityCombo.currentIndex = i;
-                    break;
+            debugText.log("Setting initial city: " + cfg_city);
+            if (cfg_city && cfg_city !== "") {
+                for(var i = 0; i < cityModel.count; i++) {
+                    if (cityModel.get(i).value === cfg_city) {
+                        debugText.log("Found matching city at index " + i);
+                        cityCombo.currentIndex = i;
+                        break;
+                    }
+                }
+            } else {
+                debugText.log("No city set, using first available");
+                if (cityModel.count > 0) {
+                    cityCombo.currentIndex = 0;
                 }
             }
         });
-
-        setInitialTimezone();
     }
 
     // Function to load countries
@@ -88,7 +145,7 @@ Kirigami.FormLayout {
         // Add more country conditions as needed
     }
     
-    // Function to load timezones
+    // Function to load timezones from JSON file
     function loadTimezones() {
         console.log("Starting loadTimezones function");
         console.log("Attempting to load timezones from:", timezonesJsonPath);
@@ -149,17 +206,66 @@ Kirigami.FormLayout {
         xhr.send();
     }
 
+    // Get the local timezone
+    function getLocalTimezone() {
+        debugText.log("getLocalTimezone called");
+        // This returns the local timezone in IANA format (e.g., "America/New_York")
+        var now = new Date();
+        // Get timezone offset in minutes
+        var timezoneOffset = -now.getTimezoneOffset();
+        // Convert to hours
+        var offsetHours = Math.floor(Math.abs(timezoneOffset) / 60);
+        // Format offset string
+        var offsetString = (timezoneOffset >= 0 ? "+" : "-") + 
+                        String(offsetHours).padStart(2, "0") + ":00";
+        
+        debugText.log("Local timezone offset: " + offsetString);
+        
+        // Find matching timezone in our model
+        for (var i = 0; i < timezoneModel.count; i++) {
+            var item = timezoneModel.get(i);
+            if (item.text.indexOf(offsetString) !== -1) {
+                debugText.log("Found matching timezone by offset: " + item.identifier);
+                return item.identifier;
+            }
+        }
+        
+        // Fallback to system locale information if available
+        var localeTimeZone = Qt.locale().timeZoneId || "UTC";
+        debugText.log("Falling back to locale timezone: " + localeTimeZone);
+        return localeTimeZone;
+    }
+
     function setInitialTimezone() {
+        debugText.log("setInitialTimezone called, current cfg_timezone: " + cfg_timezone);
+        debugText.log("Current timezoneModel count: " + timezoneModel.count);
+        
         if (!cfg_timezone || cfg_timezone === "") {
             cfg_timezone = getLocalTimezone();
+            debugText.log("No timezone set, using local timezone: " + cfg_timezone);
         }
         
         // Find the index of the timezone in the model
+        var found = false;
         for (var i = 0; i < timezoneModel.count; i++) {
-            if (timezoneModel.get(i).identifier === cfg_timezone || 
-                timezoneModel.get(i).value === cfg_timezone) {
+            var item = timezoneModel.get(i);
+            debugText.log("Checking timezone at index " + i + ": " + item.identifier + " vs " + cfg_timezone);
+            
+            if (item.identifier === cfg_timezone || 
+                item.value === cfg_timezone || 
+                (item.utcZones && item.utcZones.indexOf(cfg_timezone) !== -1)) {
+                debugText.log("Found matching timezone at index " + i);
                 timezoneCombo.currentIndex = i;
+                found = true;
                 break;
+            }
+        }
+        
+        if (!found) {
+            debugText.log("Could not find matching timezone for: " + cfg_timezone);
+            if (timezoneModel.count > 0) {
+                debugText.log("Setting to first available timezone");
+                timezoneCombo.currentIndex = 0;
             }
         }
     }
@@ -249,5 +355,26 @@ Kirigami.FormLayout {
         id: showPrayerTimesCheckbox
         Kirigami.FormData.label: i18nc("@option:check", "Show Prayer Times:")
         checked: true
+    }
+    
+    RowLayout {
+        Layout.fillWidth: true
+        visible: debugMode
+        
+        Button {
+            text: "Refresh Timezones"
+            onClicked: {
+                debugText.log("Manual refresh of timezones requested");
+                loadTimezones();
+            }
+        }
+        
+        Button {
+            text: "Clear Debug Log"
+            onClicked: {
+                debugText.text = "Debug Log:";
+            }
+        }
+        }
     }
 }
