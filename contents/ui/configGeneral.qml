@@ -120,6 +120,8 @@ Kirigami.FormLayout {
             }
         };
         xhr.send();
+        timezoneModel.append({text: "UTC-08:00 (Pacific Time)", value: "America/Los_Angeles", identifier: "America/Los_Angeles", utcZones: ["America/Los_Angeles"]});
+        timezoneModel.append({text: "UTC-05:00 (Eastern Time)", value: "America/New_York", identifier: "America/New_York", utcZones: ["America/New_York"]});
     }
     // Get the local timezone
     function getLocalTimezone() {
