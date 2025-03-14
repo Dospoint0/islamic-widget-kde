@@ -540,10 +540,14 @@ PlasmoidItem {
         
         // Refresh button
         Button {
-            text: i18nc("@action:button", "Refresh")
+            text: i18nc("@action:button", "")
             icon.name: "view-refresh"
             Layout.alignment: Qt.AlignHCenter
             onClicked: updateAllData()
+
+            anchors.top: parent.top
+            anchors.right: parent.right
+            anchors.margins: 10 // Optional: add some space between the button and the window edges
         }
     }
 }
