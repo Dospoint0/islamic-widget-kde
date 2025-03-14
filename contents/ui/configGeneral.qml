@@ -16,7 +16,7 @@ Kirigami.FormLayout {
     property alias cfg_showHadith: showHadithCheckbox.checked
     property alias cfg_showPrayerTimes: showPrayerTimesCheckbox.checked
     property alias cfg_theme: themeCombo.currentText
-    property alias cfg_arabicBool: arabicBoolCheckbox.checked
+    property alias cfg_boldArabic: boldArabicCheckbox.checked
     
     // Location settings
     TextField {
@@ -57,6 +57,12 @@ Kirigami.FormLayout {
         id: showArabicCheckbox
         Kirigami.FormData.label: i18nc("@option:check", "Show Arabic Text:")
         checked: true
+    }
+
+    CheckBox{
+        id: boldArabicCheckbox
+        Kirigami.FormData.label: i18nc("@option:check", "Bold Arabic Text:")
+        checked: false
     }
     
     CheckBox {
