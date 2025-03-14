@@ -16,6 +16,7 @@ Kirigami.FormLayout {
     property alias cfg_showHadith: showHadithCheckbox.checked
     property alias cfg_showPrayerTimes: showPrayerTimesCheckbox.checked
     property alias cfg_theme: themeCombo.currentText
+    property alias cfg_arabicBool: arabicBoolCheckbox.checked
     
     // Location settings
     TextField {

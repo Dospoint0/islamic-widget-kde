@@ -547,7 +547,7 @@ PlasmoidItem {
 
             anchors.top: parent.top
             anchors.right: parent.right
-            anchors.margins: 10 // Optional: add some space between the button and the window edges
+            anchors.margins: 7 // Optional: add some space between the button and the window edges
         }
     }
 }
