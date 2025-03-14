@@ -52,6 +52,7 @@ cd "$REPO_NAME" || { echo -e "${RED}Failed to enter repository directory${NC}"; 
 
 echo -e "${BLUE}Step 2: Creating installation directory...${NC}"
 mkdir -p "$PLASMOID_DIR/contents/ui"
+mkdir -p "$PLASMOID_DIR/contents/config"
 if [ $? -ne 0 ]; then
     echo -e "${RED}Failed to create plasmoid directory${NC}"
     exit 1
@@ -60,34 +61,25 @@ echo -e "${GREEN}Installation directory created: $PLASMOID_DIR${NC}"
 
 echo -e "${BLUE}Step 3: Copying widget files...${NC}"
 
-# Copy metadata file based on Plasma version
-if [ "$PLASMA_VERSION" -ge "6" ]; then
-    # Use metadata.json for Plasma 6
-    if [ -f "metadata.json" ]; then
-        cp metadata.json "$PLASMOID_DIR/" || { echo -e "${RED}Failed to copy metadata.json${NC}"; exit 1; }
-    else
-        echo -e "${RED}metadata.json not found!${NC}"
-        exit 1
-    fi
+# Copy metadata file - we're using metadata.json based on the provided files
+if [ -f "metadata.json" ]; then
+    cp metadata.json "$PLASMOID_DIR/" || { echo -e "${RED}Failed to copy metadata.json${NC}"; exit 1; }
 else
-    # Use metadata.desktop for Plasma 5
-    if [ -f "metadata.desktop" ]; then
-        cp metadata.desktop "$PLASMOID_DIR/" || { echo -e "${RED}Failed to copy metadata.desktop${NC}"; exit 1; }
-    else
-        echo -e "${RED}metadata.desktop not found!${NC}"
-        exit 1
-    fi
+    echo -e "${RED}metadata.json not found!${NC}"
+    exit 1
 fi
 
 # Copy QML files
-cp contents/ui/main.qml "$PLASMOID_DIR/contents/ui/" || { echo -e "${RED}Failed to copy main.qml${NC}"; exit 1; }
-cp contents/ui/configGeneral.qml "$PLASMOID_DIR/contents/ui/" || { echo -e "${RED}Failed to copy configGeneral.qml${NC}"; exit 1; }
+cp main.qml "$PLASMOID_DIR/contents/ui/" || { echo -e "${RED}Failed to copy main.qml${NC}"; exit 1; }
+cp configGeneral.qml "$PLASMOID_DIR/contents/ui/" || { echo -e "${RED}Failed to copy configGeneral.qml${NC}"; exit 1; }
 
 # Copy config files
-mkdir -p "$PLASMOID_DIR/contents/config" || { echo -e "${RED}Failed to create config directory${NC}"; exit 1; }
-cp contents/config/config.qml "$PLASMOID_DIR/contents/config/" || { echo -e "${RED}Failed to copy config.qml${NC}"; exit 1; }
-cp contents/config/main.xml "$PLASMOID_DIR/contents/config/" || { echo -e "${RED}Failed to copy main.xml${NC}"; exit 1; }
-cp contents/timezones.json "$PLASMOID_DIR/contents/" || { echo -e "${RED}Failed to copy timezones.json${NC}"; exit 1; }
+cp config.qml "$PLASMOID_DIR/contents/config/" || { echo -e "${RED}Failed to copy config.qml${NC}"; exit 1; }
+cp main.xml "$PLASMOID_DIR/contents/config/" || { echo -e "${RED}Failed to copy main.xml${NC}"; exit 1; }
+
+# Note: We're skipping config.xml based on your decision to remove it
+# Note: timezones.json wasn't in your provided files, check if it's needed
+
 echo -e "${GREEN}Widget files copied successfully!${NC}"
 
 # Clean up
