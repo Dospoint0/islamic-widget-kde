@@ -87,7 +87,7 @@ cp contents/ui/configGeneral.qml "$PLASMOID_DIR/contents/ui/" || { echo -e "${RE
 mkdir -p "$PLASMOID_DIR/contents/config" || { echo -e "${RED}Failed to create config directory${NC}"; exit 1; }
 cp contents/config/config.qml "$PLASMOID_DIR/contents/config/" || { echo -e "${RED}Failed to copy config.qml${NC}"; exit 1; }
 cp contents/config/main.xml "$PLASMOID_DIR/contents/config/" || { echo -e "${RED}Failed to copy main.xml${NC}"; exit 1; }
-
+cp contents/timezones.json "$PLASMOID_DIR/contents/" || { echo -e "${RED}Failed to copy timezones.json${NC}"; exit 1; }
 echo -e "${GREEN}Widget files copied successfully!${NC}"
 
 # Clean up
@@ -110,7 +110,7 @@ if [[ "$restart_choice" =~ ^[Yy]$ ]]; then
     else
         # Plasma 5 restart
         kquitapp5 plasmashell || killall plasmashell
-        kstart5 plasmashell
+        kstart plasmashell
     fi
     echo -e "${GREEN}Plasma has been restarted.${NC}"
 else
