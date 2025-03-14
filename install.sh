@@ -70,12 +70,12 @@ else
 fi
 
 # Copy QML files
-cp main.qml "$PLASMOID_DIR/contents/ui/" || { echo -e "${RED}Failed to copy main.qml${NC}"; exit 1; }
-cp configGeneral.qml "$PLASMOID_DIR/contents/ui/" || { echo -e "${RED}Failed to copy configGeneral.qml${NC}"; exit 1; }
+cp contents/ui/main.qml "$PLASMOID_DIR/contents/ui/" || { echo -e "${RED}Failed to copy main.qml${NC}"; exit 1; }
+cp contents/ui/configGeneral.qml "$PLASMOID_DIR/contents/ui/" || { echo -e "${RED}Failed to copy configGeneral.qml${NC}"; exit 1; }
 
 # Copy config files
-cp config.qml "$PLASMOID_DIR/contents/config/" || { echo -e "${RED}Failed to copy config.qml${NC}"; exit 1; }
-cp main.xml "$PLASMOID_DIR/contents/config/" || { echo -e "${RED}Failed to copy main.xml${NC}"; exit 1; }
+cp contents/config/config.qml "$PLASMOID_DIR/contents/config/" || { echo -e "${RED}Failed to copy config.qml${NC}"; exit 1; }
+cp contents/config/main.xml "$PLASMOID_DIR/contents/config/" || { echo -e "${RED}Failed to copy main.xml${NC}"; exit 1; }
 
 # Note: We're skipping config.xml based on your decision to remove it
 # Note: timezones.json wasn't in your provided files, check if it's needed
@@ -85,7 +85,6 @@ echo -e "${GREEN}Widget files copied successfully!${NC}"
 # Clean up
 cd "$HOME"
 rm -rf "$TEMP_DIR"
-
 echo -e "${BLUE}Step 4: Installation complete!${NC}"
 echo -e "${GREEN}The Islamic Widget has been successfully installed.${NC}"
 
