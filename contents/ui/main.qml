@@ -14,6 +14,10 @@ PlasmoidItem {
     property string countryName: plasmoid.configuration.country || "United States"
     property string timezone: plasmoid.configuration.timezone || getLocalTimezone()
     property int fontSize: plasmoid.configuration.fontSize || 12
+    property bool boldArabic: plasmoid.configuration.boldArabic === undefined ? false : plasmoid.configuration.boldArabic
+    property bool boldTranslation: plasmoid.configuration.boldTranslation === undefined ? false : plasmoid.configuration.boldTranslation
+    property bool boldHadith: plasmoid.configuration.boldHadith === undefined ? false : plasmoid.configuration.boldHadith
+    property bool boldPrayerTimes: plasmoid.configuration.boldPrayerTimes === undefined ? false : plasmoid.configuration.boldPrayerTimes
     property bool showArabic: plasmoid.configuration.showArabic === undefined ? true : plasmoid.configuration.showArabic
     property bool showTranslation: plasmoid.configuration.showTranslation === undefined ? true : plasmoid.configuration.showTranslation
     property bool showHadith: plasmoid.configuration.showHadith === undefined ? true : plasmoid.configuration.showHadith
@@ -483,7 +487,7 @@ PlasmoidItem {
                     text: arabicText
                     horizontalAlignment: Text.AlignRight
                     font.pixelSize: fontSize + 4
-                    font.bold: true
+                    font.bold: boldArabic
                     Layout.fillWidth: true
                     wrapMode: Text.WordWrap
                 }
