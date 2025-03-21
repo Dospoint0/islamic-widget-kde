@@ -24,6 +24,12 @@ PlasmoidItem {
     property bool showPrayerTimes: plasmoid.configuration.showPrayerTimes === undefined ? true : plasmoid.configuration.showPrayerTimes
     property string theme: plasmoid.configuration.theme || "light"
     
+    // Prayer time calculation method
+    property int calculationMethod: plasmoid.configuration.calculationMethod || 2
+    // Custom angles for Fajr and Isha when using custom calculation method
+    property string fajrAngle: plasmoid.configuration.fajrAngle || "15"
+    property string ishaAngle: plasmoid.configuration.ishaAngle || "15"
+    
     // API URLs
     property string prayerApiUrl: "https://api.aladhan.com/v1/timingsByCity"
     property string quranApiUrl: "https://api.alquran.cloud/v1/ayah/random"
@@ -48,6 +54,11 @@ PlasmoidItem {
     function getLocalTimezone() {
         // Default timezone as fallback
         return "America/New_York";
+    }
+
+    function getAPIindex(index){
+        if (index == 24){return 99;}
+        return index;
     }
     
     // Timer for countdown updates
@@ -99,6 +110,24 @@ PlasmoidItem {
         return today;
     }
     
+    // Build the prayer API URL with the correct parameters
+    function buildPrayerApiUrl(city, country, date) {
+        var baseUrl = prayerApiUrl + "?city=" + encodeURIComponent(city) + 
+                 "&country=" + encodeURIComponent(country) + 
+                 "&date=" + date + 
+                 "&timezone=" + encodeURIComponent(timezone);
+        
+        // Add calculation method
+        baseUrl += "&method=" + getAPIindex(calculationMethod);
+        
+        // Add custom params if using custom calculation method
+        if (calculationMethod === 24) {
+            baseUrl += "&fajrAngle=" + fajrAngle + "&ishaAngle=" + ishaAngle;
+        }
+        
+        return baseUrl;
+    }
+    
     // Update prayer times from API
     function updatePrayerTimes() {
         var xhr = new XMLHttpRequest();
@@ -139,9 +168,7 @@ PlasmoidItem {
             }
         };
         
-        xhr.open("GET", prayerApiUrl + "?city=" + encodeURIComponent(cityName) + 
-                "&country=" + encodeURIComponent(countryName) + 
-                "&method=2&date=" + dateStr + "&timezone=" + encodeURIComponent(timezone));
+        xhr.open("GET", buildPrayerApiUrl(cityName, countryName, dateStr));
         xhr.send();
     }
     
@@ -171,9 +198,7 @@ PlasmoidItem {
             }
         };
         
-        xhr.open("GET", prayerApiUrl + "?city=" + encodeURIComponent(cityName) + 
-                "&country=" + encodeURIComponent(countryName) + 
-                "&method=2&date=" + dateStr);
+        xhr.open("GET", buildPrayerApiUrl(cityName, countryName, dateStr));
         xhr.send();
     }
     
@@ -225,9 +250,7 @@ PlasmoidItem {
             }
         };
         
-        xhr.open("GET", prayerApiUrl + "?city=" + encodeURIComponent(cityName) + 
-                "&country=" + encodeURIComponent(countryName) + 
-                "&method=2&date=" + dateStr);
+        xhr.open("GET", buildPrayerApiUrl(cityName, countryName, dateStr));
         xhr.send();
     }
     
@@ -329,16 +352,6 @@ PlasmoidItem {
         
         anchors.margins: Kirigami.Units.smallSpacing
         spacing: Kirigami.Units.largeSpacing
-        
-        // Header
-        /*
-        Label {
-            text: i18nc("@title", "Islamic Widget")
-            font.pixelSize: Kirigami.Units.gridUnit * 1.2
-            font.bold: true
-            Layout.alignment: Qt.AlignHCenter
-        }
-        */
         
         // Prayer times section
         Item {
