@@ -58,7 +58,7 @@ PlasmoidItem {
 
     function getAPIindex(index){
         if (index == 23){return 99;}
-        else if (index > 5)(return index+1)
+        else if (index > 5){return index+1;}
         return index;
     }
     
