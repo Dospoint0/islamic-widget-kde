@@ -122,7 +122,7 @@ PlasmoidItem {
         baseUrl += "&method=" + getAPIindex(calculationMethod);
         
         // Add custom params if using custom calculation method
-        if (calculationMethod === 24) {
+        if (calculationMethod === 23) {
             baseUrl += "&fajrAngle=" + fajrAngle + "&ishaAngle=" + ishaAngle;
         }
         
