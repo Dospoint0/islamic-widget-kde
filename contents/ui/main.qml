@@ -194,11 +194,11 @@ PlasmoidItem {
                     var midnightDate = new Date(ishaTime.getTime() + (secondsBetween / 2) * 1000);
                     prayerTimes['Midnight'] = midnightDate;
 
-                    /*Calculate last third of the night as the last third between Maghrib and Fajr
+                    /*Calculate last third of the night as the last third between Maghrib and Fajr*/
                     var maghribTime = prayerTimes['Maghrib'];
                     var newsecondsBetween = (tomorrowFajr - maghribTime) / 1000;
                     var lastThirdDate = new Date(maghribTime.getTime() + (newsecondsBetween * 2 / 3) * 1000);
-                    prayerTimes['LastThird'] = lastThirdDate;*/
+                    prayerTimes['LastThird'] = lastThirdDate;
 
                     
                     // Update next prayer again with correct midnight
@@ -461,6 +461,11 @@ PlasmoidItem {
                         text: prayerTimes['Midnight'] ? Qt.formatTime(prayerTimes['Midnight'], "hh:mm") : "--:--"
                         color: nextPrayer === "Midnight" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
                         font.bold: nextPrayer === "Midnight"
+                    }
+                    //Last third
+                    Label{
+                        text: i18nc("@label:prayer", "Last Third:")
+                        font.bold: true
                     }
                     Label{
                         text: prayerTimes['LastThird'] ? Qt.formatTime(prayerTimes['LastThird'], "hh:mm") : "--:--"
