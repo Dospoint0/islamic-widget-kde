@@ -150,7 +150,8 @@ PlasmoidItem {
                             'Asr': timeStringToDate(timings.Asr),
                             'Maghrib': timeStringToDate(timings.Maghrib),
                             'Isha': timeStringToDate(timings.Isha),
-                            'Midnight': timeStringToDate(timings.Midnight)
+                            'Midnight': timeStringToDate(timings.Midnight),
+                            'LastThird': timeStringToDate(timings.LastThird)
                         };
                         
                         // Get tomorrow's Fajr for midnight calculation
@@ -192,6 +193,13 @@ PlasmoidItem {
                     var secondsBetween = (tomorrowFajr - ishaTime) / 1000;
                     var midnightDate = new Date(ishaTime.getTime() + (secondsBetween / 2) * 1000);
                     prayerTimes['Midnight'] = midnightDate;
+
+                    //Calculate last third of the night as the last third between Maghrib and Fajr
+                    var maghribTime = prayerTimes['Maghrib'];
+                    secondsBetween = (tomorrowFajr - maghribTime) / 1000;
+                    var lastThirdDate = new Date(maghribTime.getTime() + (secondsBetween * 2 / 3) * 1000);
+                    prayerTimes['LastThird'] = lastThirdDate;
+
                     
                     // Update next prayer again with correct midnight
                     updateNextPrayer();
@@ -453,6 +461,11 @@ PlasmoidItem {
                         text: prayerTimes['Midnight'] ? Qt.formatTime(prayerTimes['Midnight'], "hh:mm") : "--:--"
                         color: nextPrayer === "Midnight" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
                         font.bold: nextPrayer === "Midnight"
+                    }
+                    Label{
+                        text: prayerTimes['LastThird'] ? Qt.formatTime(prayerTimes['LastThird'], "hh:mm") : "--:--"
+                        color: nextPrayer === "LastThird" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
+                        font.bold: nextPrayer === "LastThird"
                     }
                 }
                 
