@@ -194,11 +194,11 @@ PlasmoidItem {
                     var midnightDate = new Date(ishaTime.getTime() + (secondsBetween / 2) * 1000);
                     prayerTimes['Midnight'] = midnightDate;
 
-                    //Calculate last third of the night as the last third between Maghrib and Fajr
+                    /*Calculate last third of the night as the last third between Maghrib and Fajr
                     var maghribTime = prayerTimes['Maghrib'];
-                    secondsBetween = (tomorrowFajr - maghribTime) / 1000;
-                    var lastThirdDate = new Date(maghribTime.getTime() + (secondsBetween * 2 / 3) * 1000);
-                    prayerTimes['LastThird'] = lastThirdDate;
+                    var newsecondsBetween = (tomorrowFajr - maghribTime) / 1000;
+                    var lastThirdDate = new Date(maghribTime.getTime() + (newsecondsBetween * 2 / 3) * 1000);
+                    prayerTimes['LastThird'] = lastThirdDate;*/
 
                     
                     // Update next prayer again with correct midnight
