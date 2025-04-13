@@ -14,7 +14,11 @@ Kirigami.FormLayout {
     property alias cfg_showArabic: showArabicCheckbox.checked
     property alias cfg_showTranslation: showTranslationCheckbox.checked
     property alias cfg_showHadith: showHadithCheckbox.checked
+    property alias cfg_showPrayerTimes: showPrayerTimesCheckbox.checked
     property alias cfg_theme: themeCombo.currentText
+    property alias cfg_calculationMethod: calculationMethodCombo.currentIndex
+    property alias cfg_fajrAngle: fajrAngleField.text
+    property alias cfg_ishaAngle: ishaAngleField.text
     
     // Location settings
     TextField {
@@ -33,6 +37,103 @@ Kirigami.FormLayout {
         id: timezoneField
         Kirigami.FormData.label: i18nc("@label:textbox", "Timezone:")
         placeholderText: i18nc("@info:placeholder", "e.g. America/New_York")
+    }
+    
+    // Prayer Times Calculation Method
+    ComboBox {
+        id: calculationMethodCombo
+        Kirigami.FormData.label: i18nc("@label:combobox", "Calculation Method:")
+        model: [
+            i18nc("@item:inlistbox", "Jafari / Shia Ithna-Ashari"),
+            i18nc("@item:inlistbox", "University of Islamic Sciences, Karachi"),
+            i18nc("@item:inlistbox", "Islamic Society of North America"),
+            i18nc("@item:inlistbox", "Muslim World League"),
+            i18nc("@item:inlistbox", "Umm Al-Qura University, Makkah"),
+            i18nc("@item:inlistbox", "Egyptian General Authority of Survey"),
+            i18nc("@item:inlistbox", "Institute of Geophysics, University of Tehran"),
+            i18nc("@item:inlistbox", "Gulf Region"),
+            i18nc("@item:inlistbox", "Kuwait"),
+            i18nc("@item:inlistbox", "Qatar"),
+            i18nc("@item:inlistbox", "Majlis Ugama Islam Singapura, Singapore"),
+            i18nc("@item:inlistbox", "Union Organization islamic de France"),
+            i18nc("@item:inlistbox", "Diyanet İşleri Başkanlığı, Turkey"),
+            i18nc("@item:inlistbox", "Spiritual Administration of Muslims of Russia"),
+            i18nc("@item:inlistbox", "Moonsighting Committee Worldwide"),
+            i18nc("@item:inlistbox", "Dubai (experimental)"),
+            i18nc("@item:inlistbox", "Jabatan Kemajuan Islam Malaysia (JAKIM)"),
+            i18nc("@item:inlistbox", "Tunisia"),
+            i18nc("@item:inlistbox", "Algeria"),
+            i18nc("@item:inlistbox", "KEMENAG - Kementerian Agama Republik Indonesia"),
+            i18nc("@item:inlistbox", "Morocco"),
+            i18nc("@item:inlistbox", "Comunidade Islamica de Lisboa"),
+            i18nc("@item:inlistbox", "Ministry of Awqaf, Islamic Affairs and Holy Places, Jordan"),
+            i18nc("@item:inlistbox", "Custom")
+        ]
+        currentIndex: 2  // Default to ISNA
+    }
+    
+    // Custom Angle Fields (only visible when "Custom" method is selected)
+    TextField {
+        id: fajrAngleField
+        Kirigami.FormData.label: i18nc("@label:textbox", "Fajr Angle:")
+        placeholderText: i18nc("@info:placeholder", "Enter angle (e.g. 15)")
+        visible: calculationMethodCombo.currentIndex === 23  // Only visible when Custom is selected
+        validator: DoubleValidator {
+            bottom: 0
+            top: 30
+            decimals: 2
+            notation: DoubleValidator.StandardNotation
+        }
+        text: "15"  // Default value
+        
+        // Visual feedback for validation
+        Rectangle {
+            anchors.fill: parent
+            border.color: {
+                if (fajrAngleField.text === "") return Kirigami.Theme.neutralTextColor
+                return Number(fajrAngleField.text) >= 0 && Number(fajrAngleField.text) <= 30 ? 
+                       Kirigami.Theme.positiveTextColor : Kirigami.Theme.negativeTextColor
+            }
+            border.width: 1
+            color: "transparent"
+            radius: 2
+            visible: fajrAngleField.activeFocus
+        }
+    }
+    
+    TextField {
+        id: ishaAngleField
+        Kirigami.FormData.label: i18nc("@label:textbox", "Isha Angle:")
+        placeholderText: i18nc("@info:placeholder", "Enter angle (e.g. 15)")
+        visible: calculationMethodCombo.currentIndex === 23  // Only visible when Custom is selected
+        validator: DoubleValidator {
+            bottom: 0
+            top: 30
+            decimals: 2
+            notation: DoubleValidator.StandardNotation
+        }
+        text: "15"  // Default value
+        
+        // Visual feedback for validation
+        Rectangle {
+            anchors.fill: parent
+            border.color: {
+                if (ishaAngleField.text === "") return Kirigami.Theme.neutralTextColor
+                return Number(ishaAngleField.text) >= 0 && Number(ishaAngleField.text) <= 30 ? 
+                       Kirigami.Theme.positiveTextColor : Kirigami.Theme.negativeTextColor
+            }
+            border.width: 1
+            color: "transparent"
+            radius: 2
+            visible: ishaAngleField.activeFocus
+        }
+    }
+    
+    Label {
+        text: i18nc("@info", "Valid angle values are between 0° and 30°")
+        font.italic: true
+        visible: calculationMethodCombo.currentIndex === 23  // Only visible when Custom is selected
+        opacity: 0.7
     }
     
     // Appearance settings

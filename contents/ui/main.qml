@@ -14,11 +14,21 @@ PlasmoidItem {
     property string countryName: plasmoid.configuration.country || "United States"
     property string timezone: plasmoid.configuration.timezone || getLocalTimezone()
     property int fontSize: plasmoid.configuration.fontSize || 12
+    property bool boldArabic: plasmoid.configuration.boldArabic === undefined ? false : plasmoid.configuration.boldArabic
+    property bool boldTranslation: plasmoid.configuration.boldTranslation === undefined ? false : plasmoid.configuration.boldTranslation
+    property bool boldHadith: plasmoid.configuration.boldHadith === undefined ? false : plasmoid.configuration.boldHadith
+    property bool boldPrayerTimes: plasmoid.configuration.boldPrayerTimes === undefined ? false : plasmoid.configuration.boldPrayerTimes
     property bool showArabic: plasmoid.configuration.showArabic === undefined ? true : plasmoid.configuration.showArabic
     property bool showTranslation: plasmoid.configuration.showTranslation === undefined ? true : plasmoid.configuration.showTranslation
     property bool showHadith: plasmoid.configuration.showHadith === undefined ? true : plasmoid.configuration.showHadith
     property bool showPrayerTimes: plasmoid.configuration.showPrayerTimes === undefined ? true : plasmoid.configuration.showPrayerTimes
     property string theme: plasmoid.configuration.theme || "light"
+    
+    // Prayer time calculation method
+    property int calculationMethod: plasmoid.configuration.calculationMethod || 2
+    // Custom angles for Fajr and Isha when using custom calculation method
+    property string fajrAngle: plasmoid.configuration.fajrAngle || "15"
+    property string ishaAngle: plasmoid.configuration.ishaAngle || "15"
     
     // API URLs
     property string prayerApiUrl: "https://api.aladhan.com/v1/timingsByCity"
@@ -44,6 +54,12 @@ PlasmoidItem {
     function getLocalTimezone() {
         // Default timezone as fallback
         return "America/New_York";
+    }
+
+    function getAPIindex(index){
+        if (index == 23){return 99;}
+        else if (index > 5){return index+1;}
+        return index;
     }
     
     // Timer for countdown updates
@@ -95,6 +111,24 @@ PlasmoidItem {
         return today;
     }
     
+    // Build the prayer API URL with the correct parameters
+    function buildPrayerApiUrl(city, country, date) {
+        var baseUrl = prayerApiUrl + "?city=" + encodeURIComponent(city) + 
+                 "&country=" + encodeURIComponent(country) + 
+                 "&date=" + date + 
+                 "&timezone=" + encodeURIComponent(timezone);
+        
+        // Add calculation method
+        baseUrl += "&method=" + getAPIindex(calculationMethod);
+        
+        // Add custom params if using custom calculation method
+        if (calculationMethod === 23) {
+            baseUrl += "&fajrAngle=" + fajrAngle + "&ishaAngle=" + ishaAngle;
+        }
+        
+        return baseUrl;
+    }
+    
     // Update prayer times from API
     function updatePrayerTimes() {
         var xhr = new XMLHttpRequest();
@@ -107,7 +141,10 @@ PlasmoidItem {
                     var response = JSON.parse(xhr.responseText);
                     if (response.code === 200) {
                         var timings = response.data.timings;
-                        
+                        var fajrTime = timeStringToDate(timings.Fajr);
+                        var maghribTime = timeStringToDate(timings.Maghrib);
+                        var secondsBetween = 24*60*60 - (maghribTime-fajrTime)/1000;
+                        var lastThirdDate = new Date(maghribTime.getTime()  + (secondsBetween * 2 / 3) * 1000);
                         // Store prayer times
                         prayerTimes = {
                             'Fajr': timeStringToDate(timings.Fajr),
@@ -116,7 +153,8 @@ PlasmoidItem {
                             'Asr': timeStringToDate(timings.Asr),
                             'Maghrib': timeStringToDate(timings.Maghrib),
                             'Isha': timeStringToDate(timings.Isha),
-                            'Midnight': timeStringToDate(timings.Midnight)
+                            'Midnight': timeStringToDate(timings.Midnight),
+                            'LastThird': lastThirdDate
                         };
                         
                         // Get tomorrow's Fajr for midnight calculation
@@ -135,9 +173,7 @@ PlasmoidItem {
             }
         };
         
-        xhr.open("GET", prayerApiUrl + "?city=" + encodeURIComponent(cityName) + 
-                "&country=" + encodeURIComponent(countryName) + 
-                "&method=2&date=" + dateStr + "&timezone=" + encodeURIComponent(timezone));
+        xhr.open("GET", buildPrayerApiUrl(cityName, countryName, dateStr));
         xhr.send();
     }
     
@@ -160,6 +196,13 @@ PlasmoidItem {
                     var secondsBetween = (tomorrowFajr - ishaTime) / 1000;
                     var midnightDate = new Date(ishaTime.getTime() + (secondsBetween / 2) * 1000);
                     prayerTimes['Midnight'] = midnightDate;
+
+                    /*Calculate last third of the night as the last third between Maghrib and Fajr*/
+                    var maghribTime = prayerTimes['Maghrib'];
+                    var newsecondsBetween = (tomorrowFajr - maghribTime) / 1000;
+                    var lastThirdDate = new Date(maghribTime.getTime() + (newsecondsBetween * 2 / 3) * 1000);
+                    prayerTimes['LastThird'] = lastThirdDate;
+
                     
                     // Update next prayer again with correct midnight
                     updateNextPrayer();
@@ -167,9 +210,7 @@ PlasmoidItem {
             }
         };
         
-        xhr.open("GET", prayerApiUrl + "?city=" + encodeURIComponent(cityName) + 
-                "&country=" + encodeURIComponent(countryName) + 
-                "&method=2&date=" + dateStr);
+        xhr.open("GET", buildPrayerApiUrl(cityName, countryName, dateStr));
         xhr.send();
     }
     
@@ -221,9 +262,7 @@ PlasmoidItem {
             }
         };
         
-        xhr.open("GET", prayerApiUrl + "?city=" + encodeURIComponent(cityName) + 
-                "&country=" + encodeURIComponent(countryName) + 
-                "&method=2&date=" + dateStr);
+        xhr.open("GET", buildPrayerApiUrl(cityName, countryName, dateStr));
         xhr.send();
     }
     
@@ -326,16 +365,6 @@ PlasmoidItem {
         anchors.margins: Kirigami.Units.smallSpacing
         spacing: Kirigami.Units.largeSpacing
         
-        // Header
-        /*
-        Label {
-            text: i18nc("@title", "Islamic Widget")
-            font.pixelSize: Kirigami.Units.gridUnit * 1.2
-            font.bold: true
-            Layout.alignment: Qt.AlignHCenter
-        }
-        */
-        
         // Prayer times section
         Item {
             Layout.fillWidth: true
@@ -436,6 +465,16 @@ PlasmoidItem {
                         color: nextPrayer === "Midnight" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
                         font.bold: nextPrayer === "Midnight"
                     }
+                    /*Last third*/
+                    Label{
+                        text: i18nc("@label:prayer", "Last Third:")
+                        font.bold: true
+                    }
+                    Label{
+                        text: prayerTimes['LastThird'] ? Qt.formatTime(prayerTimes['LastThird'], "hh:mm") : "--:--"
+                        color: nextPrayer === "LastThird" ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
+                        font.bold: nextPrayer === "LastThird"
+                    }
                 }
                 
                 // Separator
@@ -483,7 +522,7 @@ PlasmoidItem {
                     text: arabicText
                     horizontalAlignment: Text.AlignRight
                     font.pixelSize: fontSize + 4
-                    font.bold: true
+                    font.bold: boldArabic
                     Layout.fillWidth: true
                     wrapMode: Text.WordWrap
                 }
@@ -540,10 +579,14 @@ PlasmoidItem {
         
         // Refresh button
         Button {
-            text: i18nc("@action:button", "Refresh")
+            text: i18nc("@action:button", "")
             icon.name: "view-refresh"
             Layout.alignment: Qt.AlignHCenter
             onClicked: updateAllData()
+
+            anchors.top: parent.top
+            anchors.right: parent.right
+            anchors.margins: 2 // Optional: add some space between the button and the window edges
         }
     }
 }
